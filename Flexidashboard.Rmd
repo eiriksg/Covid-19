@@ -1,0 +1,180 @@
+---
+title: "Corona dashboards"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+```{r}
+
+```
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+source("utils.R")
+source("get_data.R")
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Confirmed cases of Covid_19 in the world
+
+```{r ranking confirmed, echo=FALSE,warning=FALSE,message=FALSE}
+
+# Creates a world map for ploting
+worldmap <- ne_countries(scale = 'medium', type = 'map_units',
+                         returnclass = 'sf')
+
+
+death_compare<-ncovDeathsTidy %>% 
+  filter(value!=0) %>%
+  group_by(Lat,Long,date) %>%
+  summarize(dead=sum(value)) 
+
+#plot_sick<-
+map_plot<-ncovConfirmedTidy %>% 
+  filter(value!=0, Country.Region!="Cruise Ship") %>%
+  group_by(Lat,Long,date) %>%
+  summarize(Infected=sum(value)) %>% 
+  left_join(death_compare) 
+
+
+
+# World map of corona Outbreak confirmed
+a<-map_plot %>% 
+  filter(Infected>0) %>% 
+  ggplot() +
+  geom_sf(data = worldmap)+
+  scale_color_viridis_c()+
+  theme_map() +
+  geom_point(aes(x = Long, y = Lat ,color= dead, size=Infected)) +
+  labs(title = 'Confired cases of Covid-19 in the World \n Date: {closest_state}', x="", y="")+
+  transition_states(date, transition_length = 0, state_length = 2, wrap = FALSE)+
+  ease_aes(default = "linear")
+
+plot_confirmed<-animate(a, fps = 7, duration = 35, width = 1100, height = 850)
+plot_confirmed
+
+
+
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Countries with most cases of Covid-19
+
+```{r  rank confirmed, echo=FALSE,warning=FALSE,message=FALSE}
+
+# Rank for Confirmed Cases
+countries<-ncovConfirmedTidy %>% 
+  group_by(Country.Region) %>% 
+  summarize(total=sum(value)) %>% 
+  arrange(desc(total)) %>% 
+  head(n=20)
+
+for_rank<-ncovConfirmedTidy %>% 
+  filter(Country.Region %in% countries$Country.Region) %>%
+  group_by(date,Country.Region) %>% 
+  summarise(conf=sum(value)) %>%
+  filter(conf>0) %>% 
+  drop_na()
+
+
+
+
+gap <- for_rank %>%
+  group_by(date) %>%
+  # The * 1 makes it possible to have non-integer ranks while sliding
+  mutate(rank = min_rank(-conf) * 1) %>%
+  ungroup()
+
+p <- ggplot(gap, aes(rank, group = Country.Region, 
+                     fill = as.factor(Country.Region), color = as.factor(Country.Region))) +
+  geom_tile(aes(y = conf/2,
+                height = conf,
+                width = 0.9), alpha = 0.8, color = NA) +
+  
+  # text in x-axis (requires clip = "off" in coord_*)
+  # paste(country, " ")  is a hack to make pretty spacing, since hjust > 1 
+  #   leads to weird artifacts in text spacing.
+  geom_text(aes(y = 0, label = paste(Country.Region, " ")), vjust = 0.2, hjust = 1) +
+  
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_reverse() +
+  guides(color = FALSE, fill = FALSE) +
+  
+  labs(title='Confirmed cases of Covid-19 on {closest_state}', x = "", y = "COnfirmed Cases of Covid-19") +
+  theme(plot.title = element_text(hjust = 0, size = 22),
+        axis.ticks.y = element_blank(),  # These relate to the axes post-flip
+        axis.text.y  = element_blank(),  # These relate to the axes post-flip
+        plot.margin = margin(1,1,1,4, "cm")) +
+  
+  transition_states(date, transition_length = 4, state_length = 1) +
+  ease_aes('cubic-in-out')
+
+rank_confirmed<-animate(p, fps = 7, duration = 35, width = 800, height = 600)
+rank_confirmed
+
+
+```
+
+### Countries with most fatalities of Covid-19
+
+```{r rank dead dead, echo=FALSE,warning=FALSE,message=FALSE}
+
+
+#Dead
+countries<-ncovDeathsTidy%>% 
+  group_by(Country.Region) %>% 
+  summarize(total=sum(value)) %>% 
+  arrange(desc(total)) %>% 
+  head(n=20)
+
+for_rank<-ncovDeathsTidy %>% 
+  filter(Country.Region %in% countries$Country.Region) %>%
+  group_by(date,Country.Region) %>% 
+  summarise(dead=sum(value)) %>% 
+  filter(dead>0) %>% 
+  drop_na()
+
+
+
+gap <- for_rank %>%
+  group_by(date) %>%
+  # The * 1 makes it possible to have non-integer ranks while sliding
+  mutate(rank = min_rank(-dead) * 1) %>%
+  ungroup()
+
+p <- ggplot(gap, aes(rank, group = Country.Region, 
+                     fill = as.factor(Country.Region), color = as.factor(Country.Region))) +
+  geom_tile(aes(y = dead/2,
+                height = dead,
+                width = 0.9), alpha = 0.8, color = NA) +
+  
+  # text in x-axis (requires clip = "off" in coord_*)
+  # paste(country, " ")  is a hack to make pretty spacing, since hjust > 1 
+  #   leads to weird artifacts in text spacing.
+  geom_text(aes(y = 0, label = paste(Country.Region, " ")), vjust = 0.2, hjust = 1) +
+  
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_reverse() +
+  guides(color = FALSE, fill = FALSE) +
+  
+  labs(title='Confirmed deaths of Covid-19 on {closest_state}', x = "", y = "COnfirmed Deaths") +
+  theme(plot.title = element_text(hjust = 0, size = 22),
+        axis.ticks.y = element_blank(),  # These relate to the axes post-flip
+        axis.text.y  = element_blank(),  # These relate to the axes post-flip
+        plot.margin = margin(1,1,1,4, "cm")) +
+  
+  transition_states(date, transition_length = 4, state_length = 1) +
+  ease_aes('cubic-in-out')
+
+rank_dead<-animate(p, fps = 7, duration = 35, width = 800, height = 600)
+rank_dead
+```
+

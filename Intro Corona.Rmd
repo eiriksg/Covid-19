@@ -1,0 +1,322 @@
+---
+title: "Corona Report "
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("utils.R")
+source("get_data.R")
+```
+
+This document is a daily report of the Covid-19 situation Globaly.
+The data used to produce this report is the John Hopkins dataset from github:
+"https://github.com/CSSEGISandData/COVID-19"
+
+## Total Overview `r today`
+Number of recorded cases of covid-19 
+
+```{r total overview, echo=FALSE,warning=FALSE,message=FALSE}
+
+countries_total_raw<-"https://redutv-api.vg.no/corona/v1/world/reports?"%>% jsonlite::fromJSON() %>% simplify() 
+countries_total<-as_tibble(countries_total_raw$data)
+
+df_raw<-countries_total %>% 
+  summarize(total_confirmed=sum(confirmed),total_fatalities=sum(deaths)) %>% 
+  rename("Total Confirmed"=total_confirmed, " Total Fatalities"=total_fatalities)
+library(knitr)
+library(kableExtra)
+
+
+df<-df_raw %>% 
+  add_column(today) %>% 
+  select(today,`Total Confirmed`,` Total Fatalities`) %>% 
+  rename(Date=today)
+df %>%
+  kable() %>%
+  kable_styling(position = "left",full_width = F,bootstrap_options = "striped", font_size = 22) %>% 
+  row_spec(0, bold = T)
+
+
+
+```
+
+
+
+## Confirmed cases of covid 19 
+
+### New recorded cases last 24 hours.
+```{r new cases confirmed,fig.cap = " Top 15 countries with most new cases of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases(today,ncovConfirmedTidy,"Confirmed")
+
+```
+
+
+New records of cases pr capita
+```{r new cases confirmed pop,fig.cap = " Top 15 countries with most new cases pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases_pop(today,ncovConfirmedTidy,"Confirmed")
+
+```
+
+
+## Fatalities related to covid-19
+
+Reported fatalities related to Covid-19, last 24 hours
+
+```{r new cases dead,fig.cap = " Top 15 countries with most recorded fatalities of covid-19 last 24h", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases(today,ncovDeathsTidy,"dead")
+
+```
+
+Reported fatalities related to Covid-19, last 24 hours, pr capita
+```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases_pop(today,ncovDeathsTidy,"dead")
+
+```
+
+## Sick and Dead curve
+
+This plot displays a normalized graph of the the number of sick people by covid-19
+sick=confirmed-dead-recovred
+and the number of fatalities by date.
+The plot shows top 20 most infected countries
+```{r sick and dead,fig.cap = "Normalized sick and Dead", echo=FALSE,warning=FALSE,message=FALSE}
+#Set todays date
+sick_dead_date<-today
+
+
+death_compare<-ncovDeathsTidy %>% 
+  filter(value!=0) %>%
+  group_by(Country.Region,date) %>%
+  summarize(dead=sum(value)) 
+
+recovered<-ncovRecoveredTidy %>% 
+  filter(value!=0) %>%
+  group_by(Country.Region,date) %>%
+  summarize(recovered=sum(value))
+
+
+# Get top 20 most infected countries
+countries_sick<- ncovConfirmedTidy %>% 
+  filter(date==sick_dead_date) %>% 
+  group_by(Country.Region) %>% 
+  summarize(total=sum(value)) %>% 
+  arrange(desc(total)) %>% 
+  head(n=20)
+
+#plot_sick<-
+  
+  ncovConfirmedTidy %>% 
+  filter(value!=0, Country.Region!="Cruise Ship", date<sick_dead_date) %>%
+  group_by(Country.Region,date) %>%
+  summarize(confirmed=sum(value)) %>% 
+  left_join(death_compare) %>% 
+  left_join(recovered) %>% 
+  mutate(sick=confirmed-dead-recovered) %>%
+  filter(sick>100) %>% 
+  mutate(sick=normalize(sick), dead=normalize(dead)) %>% 
+  pivot_longer(cols = c("confirmed","dead","recovered", "sick" ), names_to = "type", values_to = "value") %>% 
+  mutate(value=replace_na(value,0)) %>% 
+  filter(type!="confirmed",type!="recovered",Country.Region %in% countries_sick$Country.Region) %>% 
+  ggplot(aes(x=date,y=value, color=type))+
+  geom_line()+
+  facet_wrap(~Country.Region, scales = "free")+
+  theme_minimal()+
+  labs(title="Sick and Dead-curve", y="Percentage")+
+  scale_y_continuous(labels = scales::percent)+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+#ggplotly(plot_sick)
+
+
+```
+
+
+## Confirmed and fatality curve comparison
+A comparison of the confirmed cases of covid-19 and fatality curves for different countries. The
+
+
+# Fatality curve
+```{r Fatality curv,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+#Pr capita dead, log
+per_capita_dead<-ncovDeathsTidy  %>% 
+  filter(value!=0, Country.Region%in% countries$Country.Region) %>%
+  group_by(Country.Region,date) %>%
+  left_join(population_total) %>% 
+  summarize(pr_date=sum(value)*100000/mean(population)) %>% 
+  filter(pr_date>0.2)%>% 
+  mutate(row_name = row_number())  %>% 
+  ggplot(aes(x=row_name, y=pr_date, color=Country.Region))+
+  geom_line()+
+  scale_y_log10()+
+  labs(x="Days after fatality of 0.02 pr 100000", y="Dead",color="Country", title = "Death Curve pr capita for different countries")
+
+ggplotly(per_capita_dead)
+
+
+
+
+``` 
+
+
+## Overview pr Country `r today`
+Number of recorded cases of covid-19 country
+
+```{r total pr country, echo=FALSE,warning=FALSE,message=FALSE}
+
+countries_total_raw<-"https://redutv-api.vg.no/corona/v1/world/reports?"%>% jsonlite::fromJSON() %>% simplify() 
+countries_total<-as_tibble(countries_total_raw$data) %>% 
+  mutate(Confimred=confirmed$current,
+         Deaths=deaths$current) %>% 
+  select(-confirmed,-deaths)
+
+
+library(knitr)
+library(kableExtra)
+library(DT)
+library(formattable)
+
+
+customGreen0 = "#DeF7E9"
+
+customGreen = "#71CA97"
+
+customRed = "#ff7f7f"
+
+countries_total %>%
+  select(-isoCode,-population) %>%
+  rename(Country=countryNorwegian)%>% 
+  drop_na() %>% 
+  formattable(align =c("l","c","c","c", "r")
+              ,
+              list( Country = 
+    formatter("span", style = x ~ formattable::style(color = "grey",font.weight = "bold")), 
+  confirmedPer100kCapita = color_bar(customGreen),
+  deathsPer100kCapita = color_bar(customRed)
+  )
+  ) %>% 
+ as.datatable()
+
+
+
+```
+
+## Number of new confirmed and fatalities pr day
+
+```{r new cases, echo=FALSE,warning=FALSE,message=FALSE}
+# Time serie pr country ---------------------------------------------------
+# Confirmed and dead pr country
+pr_country_raw<-"https://redutv-api.vg.no/corona/v1/world/timeseries/by-country?"  %>% jsonlite::fromJSON()%>% simplify()
+pr_country<-pr_country_raw$items
+
+# Time serie of confirmed and dead pr country
+pr_country_timeseries<-pr_country %>% select(name,timeseries) %>% unnest(cols = c(timeseries))
+
+
+
+
+confirmed_countries<-pr_country_timeseries %>% 
+  filter(date==tomorrow) %>%  
+  arrange(desc(confirmed)) %>% 
+  head(n=20)
+
+dead_countries<-pr_country_timeseries %>% 
+  filter(date==tomorrow) %>%  
+  arrange(desc(deaths)) %>% 
+  head(n=20)
+
+  
+
+pr_day<-pr_country_timeseries %>% 
+    mutate(new_confirmed=new$confirmed,
+         new_deaths=new$deaths,
+         date=as_date(date)) 
+
+
+
+confirmed_plot<-pr_day %>% 
+  filter(name %in% confirmed_countries$name) %>% 
+  ggplot(aes(x=date, y=new_confirmed))+
+    geom_col()+
+    facet_wrap(~name, scales = "free")+
+    geom_smooth()+  
+    theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") +
+    labs(title = "New Confirmed pr day", y="Number of Confirmed", x="")+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+ggplotly(confirmed_plot)
+
+dead_plot<-pr_day %>% 
+  filter(name %in% dead_countries$name) %>% 
+    ggplot(aes(x=date, y=new_deaths))+
+    geom_col()+
+    facet_wrap(~name, scales = "free")+
+    geom_smooth()+  
+    theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") +
+    labs(title = "New Fatalities pr day", y="Number of Fatalities", x="")+
+      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+ggplotly(dead_plot)
+  
+```
+
+<!-- ## A Scandinavian comparison -->
+
+<!-- Reported fatalities related to Covid-19, last 24 hours, pr capita -->
+<!-- ```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE} -->
+<!-- #sick_dead_date<-"2020-03-25" -->
+<!-- sick_dead_date<-today -->
+
+<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany") -->
+<!-- countries_sick<-scandic -->
+<!-- countries_sick<- ncovConfirmedTidy %>%  -->
+<!--   filter(date==sick_dead_date) %>%  -->
+<!--   group_by(Country.Region) %>%  -->
+<!--   summarize(total=sum(value)) %>%  -->
+<!--   arrange(desc(total)) %>%  -->
+<!--   head(n=20) -->
+
+<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany") -->
+
+<!-- conf_dead_rec<-ncovConfirmedTidy %>%  -->
+<!--   filter(value!=0, Country.Region!="Cruise Ship", date<sick_dead_date) %>% -->
+<!--   group_by(Country.Region,date) %>% -->
+<!--   summarize(confirmed=sum(value)) %>%  -->
+<!--   left_join(death_compare) %>%  -->
+<!--   left_join(recovered) %>%  -->
+<!--   mutate(sick=confirmed-dead-recovered) %>% -->
+<!--   filter(sick>100) %>%  -->
+<!--   mutate(sick=normalize(sick), dead=normalize(dead)) %>%  -->
+<!--   pivot_longer(cols = c("confirmed","dead","recovered", "sick" ), names_to = "type", values_to = "value") %>%  -->
+<!--   mutate(value=replace_na(value,0)) -->
+
+
+
+<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany", "France") -->
+
+<!-- #Plot dead and sick Curve -->
+<!-- plot_sick<-conf_dead_rec %>%  -->
+<!--   filter(type!="confirmed",type!="recovered",Country.Region %in% scandic) %>%  -->
+<!--   ggplot(aes(x=date,y=value, color=type))+ -->
+<!--   geom_line()+ -->
+<!--   facet_wrap(~Country.Region, scales = "free")+ -->
+<!--   theme_minimal()+ -->
+<!--   labs(title="Sick and Dead-curve", y="Percentage")+ -->
+<!--   scale_y_continuous(labels = scales::percent) -->
+
+<!-- ggplotly(plot_sick) -->
+
+
+<!-- ``` -->
