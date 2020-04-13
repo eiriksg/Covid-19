@@ -27,43 +27,10 @@ The data used to produce this report is the John Hopkins dataset from github:
 ## Total Overview `r today`
 Number of recorded cases of covid-19 
 
-```{r total overview, echo=FALSE,warning=FALSE,message=FALSE}
-
-countries_total_raw<-"https://redutv-api.vg.no/corona/v1/world/reports?"%>% jsonlite::fromJSON() %>% simplify() 
-countries_total<-as_tibble(countries_total_raw$data)
-
-df_raw<-countries_total %>% 
-  filter(countryNorwegian %in% scandic) %>% 
-  summarize(total_confirmed=sum(confirmed),total_fatalities=sum(deaths)) %>% 
-  rename("Total Confirmed"=total_confirmed, " Total Fatalities"=total_fatalities) 
-  
-library(knitr)
-library(kableExtra)
-
-
-df<-df_raw %>% 
-  add_column(today) %>% 
-  select(today,`Total Confirmed`,` Total Fatalities`) %>% 
-  rename(Date=today)
-df %>%
-  kable() %>%
-  kable_styling(position = "left",full_width = F,bootstrap_options = "striped", font_size = 22) %>% 
-  row_spec(0, bold = T)
-
-
-
-```
 
 
 
 ## Confirmed cases of covid 19 
-
-### New recorded cases last 24 hours.
-```{r new cases confirmed,fig.cap = " Top 15 countries with most new cases of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases(today,scandic_country_conf,"Confirmed")
-
-```
 
 
 New records of cases pr capita
@@ -75,14 +42,6 @@ new_cases_pop(today,scandic_country_conf,"Confirmed")
 
 
 ## Fatalities related to covid-19
-
-Reported fatalities related to Covid-19, last 24 hours
-
-```{r new cases dead,fig.cap = " Top 15 countries with most recorded fatalities of covid-19 last 24h", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases(today,scandic_country_dead,"dead")
-
-```
 
 Reported fatalities related to Covid-19, last 24 hours, pr capita
 ```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
