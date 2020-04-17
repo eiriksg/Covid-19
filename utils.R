@@ -41,12 +41,11 @@ new_cases<-function(today, df,type) {
     arrange(desc(change)) %>% 
     head(n=15) 
   
-  ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change, fill=change)) +
+  ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change, fill="red")) +
     geom_text(aes(label = change),hjust = -0.1)+
-    labs(title = title, y="Number of Cases", x="Country", fill=" New Cases last 24h")+
+    labs(title = title, y="Number of Cases", x="Country")+
     geom_col() + 
     coord_flip()+
-    scale_fill_viridis()+
     ylim(0, max(df_change$change)*1.1)
 }
 
@@ -61,12 +60,11 @@ new_cases_pop<-function(today, df,type) {
     arrange(desc(change)) %>% 
     head(n=15)
   
-    ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change, fill=change)) + 
+    ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change, fill="blue")) + 
     geom_col() + 
     coord_flip()+
     geom_text(aes(label = round(change),hjust = -0.1))+
-    scale_fill_viridis()+
-    labs(title = title, y="Number of New cases pr 1000000", x="Country",fill = "Numeber of\n infected pr\n100 0000:")+
+    labs(title = title, y="Number of New cases pr 1000000", x="Country")+
     ylim(0, max(df_change$change)*1.1)
     
 }

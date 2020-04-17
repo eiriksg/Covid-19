@@ -27,7 +27,3 @@ countries_total<-as_tibble(countries_total_raw$data)
 countries_total %>% 
   summarize(total_confirmed=sum(confirmed),total_fatalities=sum(deaths)) %>% 
   rename("Total Confirmed"=total_confirmed, " Total Fatalities"=total_fatalities)
-
-# # Total confirmed, dead and recovered
-# ncovConfirmedTidy %>% 
-#   rename(conf=value) %>% 

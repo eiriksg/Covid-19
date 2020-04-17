@@ -173,7 +173,8 @@ Number of recorded cases of covid-19 country
 countries_total_raw<-"https://redutv-api.vg.no/corona/v1/world/reports?"%>% jsonlite::fromJSON() %>% simplify() 
 countries_total<-as_tibble(countries_total_raw$data) %>% 
   mutate(Confimred=confirmed$current,
-         Deaths=deaths$current) %>% 
+         Deaths=deaths$current,
+         Death_rate=round((Deaths/Confimred*100))) %>% 
   select(-confirmed,-deaths)
 
 
@@ -193,12 +194,13 @@ countries_total %>%
   select(-isoCode,-population) %>%
   rename(Country=countryNorwegian)%>% 
   drop_na() %>% 
-  formattable(align =c("l","c","c","c", "r")
+  formattable(align =c("l","c","c","c","c","r")
               ,
               list( Country = 
     formatter("span", style = x ~ formattable::style(color = "grey",font.weight = "bold")), 
   confirmedPer100kCapita = color_bar(customGreen),
-  deathsPer100kCapita = color_bar(customRed)
+  deathsPer100kCapita = color_bar(customRed),
+    Death_rate = color_bar(customRed)
   )
   ) %>% 
  as.datatable()
@@ -271,52 +273,3 @@ dead_plot<-pr_day %>%
 ggplotly(dead_plot)
   
 ```
-
-<!-- ## A Scandinavian comparison -->
-
-<!-- Reported fatalities related to Covid-19, last 24 hours, pr capita -->
-<!-- ```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE} -->
-<!-- #sick_dead_date<-"2020-03-25" -->
-<!-- sick_dead_date<-today -->
-
-<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany") -->
-<!-- countries_sick<-scandic -->
-<!-- countries_sick<- ncovConfirmedTidy %>%  -->
-<!--   filter(date==sick_dead_date) %>%  -->
-<!--   group_by(Country.Region) %>%  -->
-<!--   summarize(total=sum(value)) %>%  -->
-<!--   arrange(desc(total)) %>%  -->
-<!--   head(n=20) -->
-
-<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany") -->
-
-<!-- conf_dead_rec<-ncovConfirmedTidy %>%  -->
-<!--   filter(value!=0, Country.Region!="Cruise Ship", date<sick_dead_date) %>% -->
-<!--   group_by(Country.Region,date) %>% -->
-<!--   summarize(confirmed=sum(value)) %>%  -->
-<!--   left_join(death_compare) %>%  -->
-<!--   left_join(recovered) %>%  -->
-<!--   mutate(sick=confirmed-dead-recovered) %>% -->
-<!--   filter(sick>100) %>%  -->
-<!--   mutate(sick=normalize(sick), dead=normalize(dead)) %>%  -->
-<!--   pivot_longer(cols = c("confirmed","dead","recovered", "sick" ), names_to = "type", values_to = "value") %>%  -->
-<!--   mutate(value=replace_na(value,0)) -->
-
-
-
-<!-- scandic<-c("Norway", "Sweden", "Denmark", "Finland", "United Kingdom", "Germany", "France") -->
-
-<!-- #Plot dead and sick Curve -->
-<!-- plot_sick<-conf_dead_rec %>%  -->
-<!--   filter(type!="confirmed",type!="recovered",Country.Region %in% scandic) %>%  -->
-<!--   ggplot(aes(x=date,y=value, color=type))+ -->
-<!--   geom_line()+ -->
-<!--   facet_wrap(~Country.Region, scales = "free")+ -->
-<!--   theme_minimal()+ -->
-<!--   labs(title="Sick and Dead-curve", y="Percentage")+ -->
-<!--   scale_y_continuous(labels = scales::percent) -->
-
-<!-- ggplotly(plot_sick) -->
-
-
-<!-- ``` -->
