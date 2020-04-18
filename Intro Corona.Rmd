@@ -43,40 +43,6 @@ df %>%
 
 
 
-## Confirmed cases of covid 19 
-
-### New recorded cases last 24 hours.
-```{r new cases confirmed,fig.cap = " Top 15 countries with most new cases of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases(today,ncovConfirmedTidy,"Confirmed")
-
-```
-
-
-New records of cases pr capita
-```{r new cases confirmed pop,fig.cap = " Top 15 countries with most new cases pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases_pop(today,ncovConfirmedTidy,"Confirmed")
-
-```
-
-
-## Fatalities related to covid-19
-
-Reported fatalities related to Covid-19, last 24 hours
-
-```{r new cases dead,fig.cap = " Top 15 countries with most recorded fatalities of covid-19 last 24h", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases(today,ncovDeathsTidy,"dead")
-
-```
-
-Reported fatalities related to Covid-19, last 24 hours, pr capita
-```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
-
-new_cases_pop(today,ncovDeathsTidy,"dead")
-
-```
 
 ## Sick and Dead curve
 
@@ -273,3 +239,23 @@ dead_plot<-pr_day %>%
 ggplotly(dead_plot)
   
 ```
+
+## Confirmed cases of covid 19 
+
+### New records of cases pr capita
+```{r new cases confirmed pop,fig.cap = " Top 15 countries with most new cases pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases_pop(today,ncovConfirmedTidy,"Confirmed")
+
+```
+
+
+## Fatalities related to covid-19
+
+### Reported fatalities related to Covid-19, last 24 hours, pr capita
+```{r new cases fatalities pop,fig.cap = " Top 15 countries with most new fatalities pr capita of covid-19", echo=FALSE,warning=FALSE,message=FALSE}
+
+new_cases_pop(today,ncovDeathsTidy,"dead")
+
+```
+
