@@ -18,24 +18,13 @@ Number of recorded cases of covid-19
 
 ```{r total overview, echo=FALSE,warning=FALSE,message=FALSE}
 
-countries_total_raw<-"https://redutv-api.vg.no/corona/v1/world/reports?"%>% jsonlite::fromJSON() %>% simplify() 
-countries_total<-as_tibble(countries_total_raw$data)
-
-df_raw<-countries_total %>% 
-  summarize(total_confirmed=sum(confirmed),total_fatalities=sum(deaths)) %>% 
-  rename("Total Confirmed"=total_confirmed, " Total Fatalities"=total_fatalities)
-library(knitr)
-library(kableExtra)
-
-
-df<-df_raw %>% 
-  add_column(today) %>% 
-  select(today,`Total Confirmed`,` Total Fatalities`) %>% 
-  rename(Date=today)
-df %>%
-  kable() %>%
-  kable_styling(position = "left",full_width = F,bootstrap_options = "striped", font_size = 22) %>% 
-  row_spec(0, bold = T)
+  
+  ncovConfirmedTidy %>% 
+  rename(confirmed=value) %>% 
+  left_join(ncovDeathsTidy) %>% filter(date==today) %>%
+  summarize(conf=sum(confirmed),dead=sum(value)) %>% 
+ rename("Total Confirmed"=conf, " Total Fatalities"=dead) %>% 
+    formattable()
 
 
 

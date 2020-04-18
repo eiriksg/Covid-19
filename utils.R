@@ -60,7 +60,7 @@ new_cases_pop<-function(today, df,type) {
     arrange(desc(change)) %>% 
     head(n=15)
   
-    ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change, fill="blue")) + 
+    ggplot(df_change,aes(x=fct_reorder(Country.Region,change), y=change)) + 
     geom_col() + 
     coord_flip()+
     geom_text(aes(label = round(change),hjust = -0.1))+

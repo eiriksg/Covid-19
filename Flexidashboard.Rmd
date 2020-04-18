@@ -3,7 +3,6 @@ title: "Corona dashboards"
 output: 
   flexdashboard::flex_dashboard:
         orientation: rows
-    vertical_layout: fill
 ---
 ```{r}
 
@@ -15,7 +14,7 @@ source("utils.R")
 source("get_data.R")
 ```
 
-Row
+Row {data-height=650}
 -----------------------------------------------------------------------
 
 ### Confirmed cases of Covid_19 in the world
@@ -53,7 +52,7 @@ a<-map_plot %>%
   transition_states(date, transition_length = 0, state_length = 2, wrap = FALSE)+
   ease_aes(default = "linear")+ 
   scale_size(breaks = c(0, 10000, 50000,100000)) +
-  theme(plot.title = element_text(size=30), plot.size=element_text(size=20),plot.color=element_text(size=20))
+  theme(plot.title = element_text(size=30))
 
 plot_confirmed<-animate(a, fps = 7, duration = 35, width = 1100, height = 850)
 plot_confirmed
@@ -63,7 +62,7 @@ plot_confirmed
 
 ```
 
-Row
+Row {data-height=350}
 -----------------------------------------------------------------------
 
 ### Countries with most cases of Covid-19

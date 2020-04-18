@@ -28,6 +28,17 @@ The data used to produce this report is the John Hopkins dataset from github:
 Number of recorded cases of covid-19 
 
 
+```{r new cases confirmed pop,echo=FALSE,warning=FALSE,message=FALSE}
+
+  ncovConfirmedTidy %>% 
+  rename(confirmed=value) %>% 
+  left_join(ncovDeathsTidy) %>% filter(date==today,Country.Region %in% scandic ) %>%
+  summarize(conf=sum(confirmed),dead=sum(value)) %>% 
+ rename("Total Confirmed"=conf, " Total Fatalities"=dead) %>% 
+    formattable()
+
+
+```
 
 
 ## Confirmed cases of covid 19 
