@@ -51,10 +51,13 @@ a<-map_plot %>%
   labs(title = 'Confired cases of Covid-19 in the World \n Date: {closest_state}', x="", y="")+
   transition_states(date, transition_length = 0, state_length = 2, wrap = FALSE)+
   ease_aes(default = "linear")+ 
-  scale_size(breaks = c(0, 10000, 50000,100000)) +
-  theme(plot.title = element_text(size=30))
+  scale_size(range = c(0, 20)) +
+  theme(plot.title = element_text(size=30),
+        legend.title = element_text(size=25),
+        legend.text = element_text(size=20)
+        )
 
-plot_confirmed<-animate(a, fps = 7, duration = 35, width = 1100, height = 850)
+plot_confirmed<-animate(a, fps = 7, duration = 35, width = 2100, height = 1050)
 plot_confirmed
 
 
@@ -108,8 +111,8 @@ p <- ggplot(gap, aes(rank, group = Country.Region,
   scale_x_reverse() +
   guides(color = FALSE, fill = FALSE) +
   
-  labs(title='Confirmed cases of Covid-19 on {closest_state}', x = "", y = "COnfirmed Cases of Covid-19") +
-  theme(plot.title = element_text(hjust = 0, size = 22),
+  labs(title='Confirmed cases of Covid-19 on {closest_state}', x = "", y = "Confirmed Cases of Covid-19") +
+  theme(plot.title = element_text(hjust = 0, size = 25),
         axis.ticks.y = element_blank(),  # These relate to the axes post-flip
         axis.text.y  = element_blank(),  # These relate to the axes post-flip
         plot.margin = margin(1,1,1,4, "cm")) +
@@ -117,7 +120,7 @@ p <- ggplot(gap, aes(rank, group = Country.Region,
   transition_states(date, transition_length = 4, state_length = 1) +
   ease_aes('cubic-in-out')
 
-rank_confirmed<-animate(p, fps = 7, duration = 35, width = 800, height = 600)
+rank_confirmed<-animate(p, fps = 7, duration = 35, width = 850, height = 550)
 rank_confirmed
 
 
@@ -166,7 +169,7 @@ p <- ggplot(gap, aes(rank, group = Country.Region,
   scale_x_reverse() +
   guides(color = FALSE, fill = FALSE) +
   
-  labs(title='Confirmed deaths of Covid-19 on {closest_state}', x = "", y = "COnfirmed Deaths") +
+  labs(title='Confirmed deaths of Covid-19 on {closest_state}', x = "", y = "Confirmed Deaths") +
   theme(plot.title = element_text(hjust = 0, size = 22),
         axis.ticks.y = element_blank(),  # These relate to the axes post-flip
         axis.text.y  = element_blank(),  # These relate to the axes post-flip
@@ -175,7 +178,7 @@ p <- ggplot(gap, aes(rank, group = Country.Region,
   transition_states(date, transition_length = 4, state_length = 1) +
   ease_aes('cubic-in-out')
 
-rank_dead<-animate(p, fps = 7, duration = 35, width = 800, height = 600)
+rank_dead<-animate(p, fps = 7, duration = 35, width = 850, height = 550)
 rank_dead
 ```
 
